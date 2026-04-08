@@ -35,7 +35,7 @@ class StepRequest(BaseModel):
 
 # ─── App ──────────────────────────────────────────────────────────────────────
 
-app = app = create_app(
+app = create_app(
     title="ClinicalTrialReviewEnv",
     version="1.0.0",
     description="Clinical Trial Protocol Review — OpenEnv Environment",
