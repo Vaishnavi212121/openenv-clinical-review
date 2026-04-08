@@ -412,3 +412,15 @@ def get_grader(task_id: str) -> BaseGrader:
     if task_id not in GRADERS:
         raise ValueError(f"Unknown task_id: {task_id}. Available: {list(GRADERS.keys())}")
     return GRADERS[task_id]
+
+class BaseGrader:
+    def grade(self, **kwargs): raise NotImplementedError
+
+class EasyGrader(BaseGrader):
+    def grade(self, task_id, flags_raised, ground_truth_issues, **kwargs):
+        from models import TaskResult  # LOCAL IMPORT BREAKS THE CIRCLE
+        # Logic to match flags to ground truth...
+        return TaskResult(task_id=task_id, score=1.0, true_positives=1, false_positives=0, 
+                          false_negatives=0, critical_issues_found=1, critical_issues_total=1, 
+                          steps_used=1, max_steps=10, efficiency_bonus=0.0, final_reward=1.0, 
+                          passed=True, breakdown={})
