@@ -9,7 +9,7 @@ import uuid
 import copy
 from typing import Any, Dict, Optional, Tuple
 
-from env.models import (
+from models import (
     Observation, Action, Reward, EpisodeState, TaskResult,
     ProtocolFlag, ActionType, FlagCategory, FlagSeverity
 )

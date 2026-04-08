@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Tuple
 from difflib import SequenceMatcher
 
-from env.models import ProtocolFlag, FlagCategory, FlagSeverity, TaskResult
+from models import ProtocolFlag, FlagCategory, FlagSeverity, TaskResult
 
 
 # ─── Matching Utilities ────────────────────────────────────────────────────────

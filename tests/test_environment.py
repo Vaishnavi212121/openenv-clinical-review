@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
 from env import ClinicalTrialReviewEnv, Action, Observation, Reward, EpisodeState
-from env.models import ActionType, FlagCategory, FlagSeverity
+from models import ActionType, FlagCategory, FlagSeverity
 
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────────
