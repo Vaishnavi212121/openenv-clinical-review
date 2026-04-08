@@ -1,2 +1,2 @@
-from .environment import ClinicalTrialReviewEnv
-from .models import Action
+from env.environment import ClinicalTrialReviewEnv
+from env.models import Action
