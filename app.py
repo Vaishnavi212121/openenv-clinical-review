@@ -12,10 +12,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
-import sys, os
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import sys
+import os
+import logging
 
-from env import ClinicalTrialReviewEnv, Action
+logger = logging.getLogger(__name__)
+
+# This line is the magic key for Docker
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from environment import ClinicalTrialReviewEnv
+from models import Action
+
 
 
 # ─── Session Store ────────────────────────────────────────────────────────────
@@ -26,7 +34,7 @@ sessions: Dict[str, ClinicalTrialReviewEnv] = {}
 # ─── Request/Response Models ──────────────────────────────────────────────────
 
 class ResetRequest(BaseModel):
-    task_id: str = "task_easy"
+    task_id: Optional[str] = "task_easy"
 
 class StepRequest(BaseModel):
     session_id: str
@@ -35,11 +43,18 @@ class StepRequest(BaseModel):
 
 # ─── App ──────────────────────────────────────────────────────────────────────
 
-app = create_app(
-    title="ClinicalTrialReviewEnv",
+app = FastAPI(
+    title="ClinicalTrialReviewEnv API",
     version="1.0.0",
-    description="Clinical Trial Protocol Review — OpenEnv Environment",
+    # This is the critical line for Hugging Face
+    root_path="/spaces/Vaishu901821/clinical-trial-review",
+    root_path_in_servers=False 
 )
+
+# Also, ensure you have a root route defined so the home page isn't empty
+@app.get("/")
+async def read_root():
+    return {"status": "Running", "message": "Clinical Trial Review API is live!"}
 
 app.add_middleware(
     CORSMiddleware,
@@ -118,27 +133,31 @@ async def root():
 # ─── OpenEnv Endpoints ────────────────────────────────────────────────────────
 
 @app.post("/reset")
-async def reset(req: ResetRequest):
-    """Reset the environment and start a new episode."""
+async def reset(req: Optional[ResetRequest] = None): 
     try:
-        env = ClinicalTrialReviewEnv(task_id=req.task_id)
+        # 1. Determine the task_id (fallback to "task_easy" if body is empty)
+        task_id = "task_easy"
+        if req and req.task_id:
+            task_id = req.task_id
+            
+        # 2. Initialize your environment
+        env = ClinicalTrialReviewEnv(task_id=task_id)
         obs = env.reset()
+        
+        # 3. Create session (Keep your existing session logic here)
+        import uuid
         session_id = str(uuid.uuid4())
         sessions[session_id] = env
         
-        # Cleanup old sessions (keep last 100)
-        if len(sessions) > 100:
-            oldest = list(sessions.keys())[0]
-            del sessions[oldest]
-        
         return {
             "session_id": session_id,
-            "task_id": req.task_id,
-            "observation": obs.model_dump(),
+            "task_id": task_id,
+            "observation": obs.model_dump() if hasattr(obs, 'model_dump') else obs,
         }
-    except ValueError as e:
+    except Exception as e:
+        # This helps you see what's wrong in the Hugging Face logs
+        logger.error(f"Reset failed: {e}")
         raise HTTPException(status_code=400, detail=str(e))
-
 
 @app.post("/step")
 async def step(req: StepRequest):
@@ -261,3 +280,9 @@ async def get_yaml():
 @app.get("/health")
 async def health():
     return {"status": "ok", "environment": "ClinicalTrialReviewEnv", "version": "1.0.0"}
+def main():
+    import uvicorn
+    uvicorn.run("app:app", host="0.0.0.0", port=7860, reload=False)
+
+if __name__ == "__main__":
+    main()
