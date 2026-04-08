@@ -1,0 +1,83 @@
+name: clinical-trial-review
+version: "1.0.0"
+description: >
+  An OpenEnv environment simulating clinical trial protocol review — a high-stakes
+  real-world task performed by regulatory affairs specialists, IRB reviewers, and
+  clinical research associates. Agents must identify protocol deviations, missing
+  required elements, eligibility criteria conflicts, and safety signal gaps across
+  structured trial documents.
+
+domain: healthcare / regulatory-affairs
+tasks:
+  - id: task_easy
+    name: Missing Required Elements Check
+    difficulty: easy
+    max_steps: 10
+    reward_range: [0.0, 1.0]
+
+  - id: task_medium
+    name: Eligibility Criteria Conflict Detection
+    difficulty: medium
+    max_steps: 15
+    reward_range: [0.0, 1.0]
+
+  - id: task_hard
+    name: Full Protocol Safety & Compliance Audit
+    difficulty: hard
+    max_steps: 25
+    reward_range: [0.0, 1.0]
+
+observation_space:
+  type: dict
+  fields:
+    protocol_id: str
+    task_id: str
+    document_section: str
+    document_text: str
+    sections_reviewed: list[str]
+    flags_raised: list[dict]
+    step_number: int
+    max_steps: int
+    done: bool
+
+action_space:
+  type: dict
+  fields:
+    action_type:
+      type: enum
+      values:
+        - read_section        # Navigate to a protocol section
+        - raise_flag          # Flag an issue in current section
+        - clear_flag          # Remove a previously raised flag (false positive)
+        - submit_review       # Finalize and submit the review
+        - request_clarification  # Ask for more info (costs a step)
+    section_name: str         # For read_section
+    flag:
+      type: dict
+      fields:
+        category: str         # e.g. "missing_element", "eligibility_conflict", "safety_gap"
+        severity: str         # "critical", "major", "minor"
+        description: str
+        location: str         # section + line reference
+    flag_id: str              # For clear_flag
+    clarification_query: str  # For request_clarification
+
+baseline_scores:
+  task_easy: 0.72
+  task_medium: 0.54
+  task_hard: 0.31
+
+tags:
+  - openenv
+  - healthcare
+  - regulatory
+  - nlp
+  - document-review
+  - rl-benchmark
+
+authors:
+  - name: OpenEnv Clinical Review Team
+    email: openenv@example.com
+
+license: MIT
+repository: https://huggingface.co/spaces/openenv/clinical-trial-review
